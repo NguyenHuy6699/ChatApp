@@ -1,5 +1,5 @@
 package com.huy.constant;
 
-public class AppConstants {
-	public static String fcm_project_id = "chatapp00110";
+public final class AppConstants {
+	public final static String fcm_project_id = "chatapp00110";
 }

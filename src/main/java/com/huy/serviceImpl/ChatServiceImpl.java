@@ -20,10 +20,15 @@ public class ChatServiceImpl implements ChatService {
 	@Override
 	public List<ChatMessageDTO> getChatHistory(String userA, String userB) {
 		List<ChatMessage> chatMessageList = chatRepo.getChatHistory(userA, userB);
-		List<ChatMessageDTO> chatMessageDTOList = new ArrayList();
+		List<ChatMessageDTO> chatMessageDTOList = new ArrayList<>();
 		for (ChatMessage chatMessage : chatMessageList) {
-			chatMessageDTOList.add(ChatMessageDTOConverter.toDTO(chatMessage));
+			chatMessageDTOList.add(ChatMessageDTOConverter.getInstance().toDTO(chatMessage));
 		}
 		return chatMessageDTOList;
-	}	
+	}
+
+	@Override
+	public void save(ChatMessage message) {
+		chatRepo.save(message);
+	}
 }

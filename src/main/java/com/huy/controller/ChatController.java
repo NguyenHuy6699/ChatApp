@@ -21,7 +21,7 @@ public class ChatController {
 	
 	@GetMapping("/history")
 	public ResponseEntity<List<ChatMessageDTO>> getChatHistory(
-			@RequestParam String userA,
+			@RequestParam String userA, 
 			@RequestParam String userB
 			) {
 		return ResponseEntity.ok(chatService.getChatHistory(userA, userB));

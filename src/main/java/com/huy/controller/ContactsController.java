@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.huy.baseResponse.BaseResponse;
+import com.huy.constant.Paths;
 import com.huy.dto.UserDTO;
 import com.huy.dto.output.Contact;
 import com.huy.entity.UserEntity;
@@ -18,13 +20,13 @@ import com.huy.model.Status;
 import com.huy.service.UserService;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping(Paths.user)
 public class ContactsController {
 	@Autowired
 	UserService userService;
 
-	@GetMapping("/get_contact_list/{userName}")
-	public List<UserDTO> getFriendsList(@PathVariable String userName) {
+	@GetMapping(Paths.get_contact_list + "/{userName}")
+	public BaseResponse<UserDTO> getFriendsList(@PathVariable String userName) {
 		return userService.findAllContacts(userName);
 	}
 
@@ -34,7 +36,7 @@ public class ContactsController {
 	}
 	
 	@GetMapping("/search_user")
-	public List<UserDTO> searchUsers(@RequestParam String query) {
+	public BaseResponse<UserDTO> searchUsers(@RequestParam String query) {
 		return userService.findUserBy(query);
 	}
 }

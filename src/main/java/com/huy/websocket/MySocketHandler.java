@@ -1,4 +1,5 @@
 package com.huy.websocket;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,59 +20,66 @@ import com.huy.entity.UserEntity;
 import com.huy.repository.ChatRepository;
 import com.huy.repository.UserRepository;
 import com.huy.service.ChatService;
+import com.huy.service.UserService;
 
 @Component
 public class MySocketHandler extends TextWebSocketHandler {
 	private static final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 	private final ObjectMapper objectMapper;
-	
-	private final ChatRepository chatRepo;
-	private final UserRepository userRepo;
-	
+
+	private final ChatService chatService;
+	private final UserService userService;
+
 	@Autowired
-	public MySocketHandler (ChatRepository chatRepo, UserRepository userRepo, ObjectMapper objectMapper) {
-		this.chatRepo = chatRepo;
-		this.userRepo = userRepo;
+	public MySocketHandler(ChatService chatService, UserService userService, ObjectMapper objectMapper) {
+		this.chatService = chatService;
+		this.userService = userService;
 		this.objectMapper = objectMapper;
 	}
-	
+
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 		String query = session.getUri().getQuery();
 		String userName = getUserName(session);
 		sessions.put(userName, session);
+		System.out.println("Chat session opened: "+userName);
 	}
-	
+
 	@Override
 	protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
 		String payload = message.getPayload();
 		String receiverUserName = "";
 		ChatMessageDTO chatMessageDto = objectMapper.readValue(payload, ChatMessageDTO.class);
 		if (chatMessageDto != null) {
-			UserEntity sender = userRepo.findOneByUserName(chatMessageDto.getSenderUserName());
-			UserEntity receiver = userRepo.findOneByUserName(chatMessageDto.getReceiverUserName());
+			UserEntity sender = userService.findByUserName(chatMessageDto.getSenderUserName());
+			UserEntity receiver = userService.findByUserName(chatMessageDto.getReceiverUserName());
 			ChatMessage chatMessage = new ChatMessage();
 			chatMessage.setSender(sender);
 			chatMessage.setReceiver(receiver);
 			chatMessage.setMessage(chatMessageDto.getMessage());
 			chatMessage.setTimestamp(chatMessageDto.getTimestamp());
-			chatRepo.save(chatMessage);
-			
+			chatService.save(chatMessage);
+
 			receiverUserName = chatMessageDto.getReceiverUserName();
 			WebSocketSession receiverSession = sessions.get(receiverUserName);
 			if (receiverSession != null && receiverSession.isOpen()) {
 				String value = objectMapper.writeValueAsString(chatMessageDto);
 				receiverSession.sendMessage(new TextMessage(value));
+			} else {
+				userService.sendNotiMessage(chatMessageDto.getSenderUserName(),
+						chatMessageDto.getMessage(), chatMessageDto.getSenderUserName(),
+						chatMessageDto.getReceiverUserName());
 			}
 		}
 	}
-	
+
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 		super.afterConnectionClosed(session, status);
 		sessions.remove(getUserName(session));
+		System.out.println("Chat session closed: "+getUserName(session));
 	}
-	
+
 	private String getUserName(WebSocketSession session) {
 		String query = session.getUri().getQuery();
 		return query != null && query.startsWith("userName=") ? query.split("=")[1] : session.getId();

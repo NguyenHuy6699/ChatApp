@@ -8,5 +8,6 @@ import com.huy.entity.UserEntity;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 	UserEntity findOneByUserName(String userName); 
+	void deleteByUserName(String userName);
 	List<UserEntity> findByUserNameContainingIgnoreCase(String query);
 }
