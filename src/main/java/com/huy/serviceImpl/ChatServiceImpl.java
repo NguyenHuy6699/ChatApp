@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.huy.baseResponse.BaseResponse;
 import com.huy.converter.ChatMessageDTOConverter;
 import com.huy.dto.ChatMessageDTO;
 import com.huy.entity.ChatMessage;
@@ -18,13 +19,9 @@ public class ChatServiceImpl implements ChatService {
 	private ChatRepository chatRepo;
 	
 	@Override
-	public List<ChatMessageDTO> getChatHistory(String userA, String userB) {
+	public BaseResponse<ChatMessageDTO> getChatHistory(String userA, String userB) {
 		List<ChatMessage> chatMessageList = chatRepo.getChatHistory(userA, userB);
-		List<ChatMessageDTO> chatMessageDTOList = new ArrayList<>();
-		for (ChatMessage chatMessage : chatMessageList) {
-			chatMessageDTOList.add(ChatMessageDTOConverter.getInstance().toDTO(chatMessage));
-		}
-		return chatMessageDTOList;
+		return new BaseResponse<>(true, null, ChatMessageDTOConverter.getInstance().toListDTO(chatMessageList));
 	}
 
 	@Override

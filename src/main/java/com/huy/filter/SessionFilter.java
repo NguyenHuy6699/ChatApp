@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huy.constant.Paths;
+import com.huy.constant.ResponseType;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -41,7 +42,11 @@ public class SessionFilter extends BaseFilter {
 			return;
 		}
 		if (session == null) {
-			writeResponse(resp, false, "Phiên đăng nhập đã hết hạn", null);
+			if (path.contains(Paths.startup_login)) {
+				writeResponse(resp, ResponseType.startup_session_expired, false, "Phiên đăng nhập đã hết hạn", null);
+			} else {
+				writeResponse(resp, ResponseType.session_expired, false, "Phiên đăng nhập đã hết hạn", null);
+			}
 			return;
 		} 
 		chain.doFilter(request, response);

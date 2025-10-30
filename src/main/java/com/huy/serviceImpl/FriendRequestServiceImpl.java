@@ -30,17 +30,16 @@ public class FriendRequestServiceImpl {
 		}
 
 		try {
-			FcmSender.sendMultiMessage("Lời mời kết bạn mới từ:", sender.getUserName(), sender.getUserName(), receiver.getUserName(),
-					receiver.getSessions());
+			FcmSender.sendMultiMessage("Lời mời kết bạn mới từ:", sender.getUserName(), sender.getUserName(), receiver);
 		} catch (Exception e) {
 			System.out.println("Error sending FCM messages");
 			e.printStackTrace();
 		}
-		
+
 		FriendRequestEntity existFrReq = friendRequestRepo.findBySenderAndReceiver(sender, receiver);
 		if (existFrReq != null) {
 			System.out.println("friend request. From: " + sender.getUserName() + ". To: " + receiver.getUserName()
-			+ " : (request already exist)");
+					+ " : (request already exist)");
 			existFrReq.setStatus(FriendRequestStatus.WAITING);
 			friendRequestRepo.save(existFrReq);
 		} else {
@@ -50,7 +49,7 @@ public class FriendRequestServiceImpl {
 			frReq.setStatus(FriendRequestStatus.WAITING);
 			friendRequestRepo.save(frReq);
 		}
-		
+
 		FriendRequestEntity newFrReq = friendRequestRepo.findBySenderAndReceiver(sender, receiver);
 		BaseResponse<Void> res = new BaseResponse<>();
 		if (newFrReq != null) {
@@ -106,13 +105,18 @@ public class FriendRequestServiceImpl {
 	public BaseResponse<Void> acceptFriendRequest(UserEntity sender, UserEntity receiver) {
 		if (sender == null || receiver == null)
 			return new BaseResponse<>(false, "Người dùng không tồn tại");
-		FriendRequestEntity frReq = friendRequestRepo.findBySenderAndReceiver(sender, receiver);
-		if (frReq != null) {
-			frReq.setStatus(FriendRequestStatus.ACCEPTED);
-			FriendRequestEntity updatedFrReq = friendRequestRepo.save(frReq);
-			if (updatedFrReq.getStatus() == FriendRequestStatus.ACCEPTED) {
-				return new BaseResponse<>(true, "Kết bạn thành công");
+		try {
+			FriendRequestEntity frReq = friendRequestRepo.findBySenderAndReceiver(sender, receiver);
+			if (frReq != null) {
+				frReq.setStatus(FriendRequestStatus.ACCEPTED);
+				FriendRequestEntity updatedFrReq = friendRequestRepo.save(frReq);
+				FcmSender.sendMultiMessage(receiver.getUserName() + " Đã chấp nhận lời mời kết bạn.", "", "", sender);
+				if (updatedFrReq.getStatus() == FriendRequestStatus.ACCEPTED) {
+					return new BaseResponse<>(true, "Kết bạn thành công");
+				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return new BaseResponse<>(false, "Lỗi kết bạn");
 	}
@@ -148,15 +152,28 @@ public class FriendRequestServiceImpl {
 
 	public BaseResponse<FriendRequestDTO> getRelationship(UserEntity loggedUser, UserEntity user) {
 		FriendRequestEntity frReq1 = friendRequestRepo.findBySenderAndReceiver(loggedUser, user);
-		if (frReq1 != null) {
-			return new BaseResponse<FriendRequestDTO>(true, "ok",
-					List.of(FriendRequestDTOConverter.getInstance().toDTO(frReq1)));
-		}
 		FriendRequestEntity frReq2 = friendRequestRepo.findBySenderAndReceiver(user, loggedUser);
-		if (frReq2 != null) {
-			return new BaseResponse<FriendRequestDTO>(true, "ok",
-					List.of(FriendRequestDTOConverter.getInstance().toDTO(frReq2)));
+
+		if (frReq1 != null) {
+			if (frReq2 == null 
+					|| ((frReq1.getStatus() != FriendRequestStatus.CANCELED && frReq1.getStatus() != FriendRequestStatus.REJECTED)
+						&& (frReq2.getStatus() == FriendRequestStatus.CANCELED || frReq2.getStatus() == FriendRequestStatus.REJECTED))
+					) {
+				return new BaseResponse<FriendRequestDTO>(true, null,
+						List.of(FriendRequestDTOConverter.getInstance().toDTO(frReq1)));
+			}
 		}
+
+		if (frReq2 != null) {
+			if (frReq1 == null 
+					|| ((frReq2.getStatus() != FriendRequestStatus.CANCELED && frReq2.getStatus() != FriendRequestStatus.REJECTED)
+						&& (frReq1.getStatus() == FriendRequestStatus.CANCELED || frReq1.getStatus() == FriendRequestStatus.REJECTED))
+					) {
+				return new BaseResponse<FriendRequestDTO>(true, null,
+						List.of(FriendRequestDTOConverter.getInstance().toDTO(frReq2)));
+			}
+		}
+		
 		return new BaseResponse<>(false, "Chưa từng gửi kết bạn", null);
 	}
 

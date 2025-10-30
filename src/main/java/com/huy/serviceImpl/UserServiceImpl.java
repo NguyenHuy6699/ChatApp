@@ -31,12 +31,12 @@ public class UserServiceImpl implements UserService {
 
 	@Value("${upload.avatar.path}")
 	private String uploadPath;
-	
+
 	@Value("${default.avatar.path}")
 	private String defaultAvatarPath;
-	
+
 	private String defaultAvatarName = "default_avatar.png";
-	
+
 	@Value("${address}")
 	private String serverAddress;
 
@@ -143,7 +143,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public BaseResponse<Void> register(String userName, String password) {
+	public BaseResponse<Void> register(String userName, String password, String fullName, String phoneNumber) {
 		UserEntity existUser = userRepository.findOneByUserName(userName);
 		if (existUser != null) {
 			return new BaseResponse<>(false, "Người dùng đã tồn tại");
@@ -151,11 +151,14 @@ public class UserServiceImpl implements UserService {
 		UserEntity newUser = new UserEntity();
 		newUser.setUserName(userName);
 		newUser.setPassword(password);
-		newUser.setDefaultAvatarUrl(serverAddress + ":" + serverPort + com.huy.constant.Paths.default_avatar_url + "/" + defaultAvatarName);
+		newUser.setFullName(fullName);
+		newUser.setPhoneNumber(phoneNumber);
+		newUser.setDefaultAvatarUrl(
+				serverAddress + ":" + serverPort + com.huy.constant.Paths.default_avatar_url + "/" + defaultAvatarName);
 		UserEntity newUser2 = userRepository.save(newUser);
 		if (newUser2 != null) {
 			return new BaseResponse<>(true, "Đăng ký thành công");
-		} 
+		}
 		return new BaseResponse<>(false, "Đăng ký không thành công");
 	}
 
@@ -179,9 +182,7 @@ public class UserServiceImpl implements UserService {
 	public void sendNotiMessage(String title, String message, String senderUserName, String receiverUserName)
 			throws Exception {
 		UserEntity receiver = userRepository.findOneByUserName(receiverUserName);
-		if (receiver != null && receiver.getSessions() != null) {
-			FcmSender.sendMultiMessage(title, message, senderUserName, receiverUserName, receiver.getSessions());
-		}
+		FcmSender.sendMultiMessage(title, message, senderUserName, receiver);
 	}
 
 	@Override
@@ -199,6 +200,62 @@ public class UserServiceImpl implements UserService {
 		user.setAvatarUrl(serverAddress + ":" + serverPort + com.huy.constant.Paths.avatar_url + "/" + fileName);
 		saveUser(user);
 		return user.getAvatarUrl();
+	}
+
+	@Override
+	public BaseResponse<UserDTO> updateProfile(String userName, UserDTO userDto) {
+		UserEntity user = userRepository.findOneByUserName(userName);
+		if (user == null) {
+			return new BaseResponse<>(false, "Người dùng không tồn tại");
+		}
+		String dtoUserName = userDto.getUserName();
+		if (dtoUserName != null && !dtoUserName.equals(userName)) {
+			UserEntity duplicateUser = userRepository.findOneByUserName(dtoUserName);
+			if (duplicateUser != null) {
+				return new BaseResponse<>(false, "Tên đăng nhập đã tồn tại", null);
+			}
+		}
+		
+		if (userDto.getUserName() != null && !userDto.getUserName().isBlank())
+		user.setUserName(userDto.getUserName());
+		
+		if (userDto.getAvatarUrl() != null && !userDto.getAvatarUrl().isBlank())
+		user.setAvatarUrl(userDto.getAvatarUrl());
+		
+		if (userDto.getDefaultAvatarUrl() != null && !userDto.getDefaultAvatarUrl().isBlank())
+		user.setDefaultAvatarUrl(userDto.getDefaultAvatarUrl());
+		
+		if (userDto.getFullName() != null && !userDto.getFullName().isBlank())
+		user.setFullName(userDto.getFullName());
+		
+		if (userDto.getPhoneNumber() != null && !userDto.getPhoneNumber().isBlank())
+		user.setPhoneNumber(userDto.getPhoneNumber());
+		
+		try {
+			UserEntity updatedUser = userRepository.save(user);
+			return new BaseResponse<>(true, "Cập nhật thành công",
+					UserDTOConverter.getInstance().toListDTO(List.of(updatedUser)));
+		} catch (Exception e) {
+			return new BaseResponse<>(false, "Cập nhật không thành công", null);
+		}
+	}
+
+	@Override
+	public BaseResponse<Void> changePassWord(String sessionUserName, String newPassWord) {
+		UserEntity user = userRepository.findOneByUserName(sessionUserName);
+		if (user == null) {
+			return new BaseResponse<>(false, "Người dùng không tồn tại");
+		}
+		if (user.getPassword().equals(newPassWord)) {
+			return new BaseResponse<>(false, "Mật khẩu mới không được trùng mật khẩu cũ");
+		}
+		user.setPassword(newPassWord);
+		try {
+			userRepository.save(user);
+			return new BaseResponse<>(true, "Cập nhật mật khẩu thành công");
+		} catch (Exception e) {
+			return new BaseResponse<>(false, "Cập nhật mật khẩu thất bại");
+		}
 	}
 
 	private boolean deleteFile(String filePath, String fileName) {

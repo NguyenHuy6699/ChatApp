@@ -27,6 +27,8 @@ public class UserDTOConverter extends BaseConverter<UserEntity, UserDTO> {
 		userDto.setUserName(userEntity.getUserName());
 		userDto.setAvatarUrl(userEntity.getAvatarUrl());
 		userDto.setDefaultAvatarUrl(userEntity.getDefaultAvatarUrl());
+		userDto.setPhoneNumber(userEntity.getPhoneNumber());
+		userDto.setFullName(userEntity.getFullName());
 		return userDto;
 	}
 	

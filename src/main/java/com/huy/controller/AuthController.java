@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.huy.baseResponse.BaseResponse;
 import com.huy.constant.Paths;
 import com.huy.constant.SessionAtributes;
+import com.huy.constant.SessionDestroyedCause;
 import com.huy.converter.UserDTOConverter;
 import com.huy.dto.UserDTO;
 import com.huy.entity.UserEntity;
@@ -33,8 +34,12 @@ public class AuthController {
 	private SessionServiceImpl sessionService;
 
 	@PostMapping(Paths.register)
-	public BaseResponse<Void> register(@RequestParam String userName, @RequestParam String password) {
-		return userService.register(userName, password);
+	public BaseResponse<Void> register(
+			@RequestParam String userName, 
+			@RequestParam String password,
+			@RequestParam String fullName,
+			@RequestParam String phoneNumber) {
+		return userService.register(userName, password, fullName, phoneNumber);
 	}
 
 	@PostMapping(Paths.startup_login)
@@ -67,7 +72,8 @@ public class AuthController {
 			userDto = UserDTOConverter.getInstance().toDTO(existingUser);
 
 			HttpSession session = request.getSession(true);
-			session.setAttribute("userName", userName);
+			session.setAttribute(SessionAtributes.userName, userName);
+			session.setAttribute(SessionAtributes.destroyedCause, null);
 			sessionService.save(session, existingUser, fcmToken, deviceId);
 
 			return new BaseResponse<UserDTO>(true, "Đăng nhập thành công", List.of(userDto));
@@ -78,6 +84,7 @@ public class AuthController {
 
 	@PostMapping(Paths.logout)
 	public BaseResponse<Void> logout(HttpSession session) {
+		session.setAttribute(SessionAtributes.destroyedCause, SessionDestroyedCause.INVALIDATED);
 		session.invalidate();
 		BaseResponse<Void> res = new BaseResponse<>();
 		res.setOk(true);

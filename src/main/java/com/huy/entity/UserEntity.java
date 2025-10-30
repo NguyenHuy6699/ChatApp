@@ -15,6 +15,8 @@ public class UserEntity extends BaseEntity {
 	private String password;
 	private String avatarUrl;
 	private String defaultAvatarUrl;
+	private String phoneNumber;
+	private String fullName;
 	
 	@OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
 	private List<ChatMessage> sentMessages = new ArrayList();
@@ -80,6 +82,18 @@ public class UserEntity extends BaseEntity {
 	}
 	public void setDefaultAvatarUrl(String defaultAvatarUrl) {
 		this.defaultAvatarUrl = defaultAvatarUrl;
+	}
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+	}
+	public String getFullName() {
+		return fullName;
+	}
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
 	}
 	public UserEntity(String userName, String password) {
 		super();

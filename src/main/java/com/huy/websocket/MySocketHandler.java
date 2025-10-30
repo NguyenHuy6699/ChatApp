@@ -1,10 +1,6 @@
 package com.huy.websocket;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,8 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huy.dto.ChatMessageDTO;
 import com.huy.entity.ChatMessage;
 import com.huy.entity.UserEntity;
-import com.huy.repository.ChatRepository;
-import com.huy.repository.UserRepository;
 import com.huy.service.ChatService;
 import com.huy.service.UserService;
 
@@ -39,10 +33,9 @@ public class MySocketHandler extends TextWebSocketHandler {
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-		String query = session.getUri().getQuery();
 		String userName = getUserName(session);
 		sessions.put(userName, session);
-		System.out.println("Chat session opened: "+userName);
+		System.out.println("Chat session opened: " + userName);
 	}
 
 	@Override
@@ -77,7 +70,7 @@ public class MySocketHandler extends TextWebSocketHandler {
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 		super.afterConnectionClosed(session, status);
 		sessions.remove(getUserName(session));
-		System.out.println("Chat session closed: "+getUserName(session));
+		System.out.println("Chat session closed: "+getUserName(session) + " - Reason: " + status.getReason());
 	}
 
 	private String getUserName(WebSocketSession session) {

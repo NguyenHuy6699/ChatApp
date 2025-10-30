@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.huy.constant.AppConstants;
 import com.huy.entity.SessionEntity;
+import com.huy.entity.UserEntity;
 
 public class FcmSender {
 	private static String getAccessToken() throws Exception {
@@ -66,18 +67,23 @@ public class FcmSender {
 			}
 			br.close();
 		}
-		System.out.println("Sent notify friend request. From: " + senderUserName + ". To: "
-				+ receiverUserName + ". resp: " + responseContent.toString());
+		System.out.println("Sent fcm notify. From: " + senderUserName + ". To: "
+				+ receiverUserName + ". result: " + responseContent.toString());
 	}
 	
-	public static void sendMultiMessage(String title, String message, String senderUserName, String receiverUserName, List<SessionEntity> sessions) throws Exception {
+	public static void sendMultiMessage(String title, String message, String senderUserName, UserEntity receiver) throws Exception {
+		if (receiver == null) {
+			System.out.println("error send multipel fcm: receiver is null");
+			return;
+		}
+		List<SessionEntity> sessions = receiver.getSessions();
 		if (sessions == null || sessions.isEmpty()) {
-			System.out.println("send mutlple fcm: sessions is null or empty");
+			System.out.println("error send mutlple fcm_from: " + senderUserName + " - to: " +receiver.getUserName() + "_sessions is null or empty");
 			return;
 		}
 		for (SessionEntity session : sessions) {
 			String fcmToken = session.getFcmToken();
-			sendMessage(title, message, senderUserName, receiverUserName, fcmToken);
+			sendMessage(title, message, senderUserName, receiver.getUserName(), fcmToken);
 		}
 	}
 }

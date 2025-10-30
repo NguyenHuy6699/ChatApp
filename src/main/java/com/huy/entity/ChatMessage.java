@@ -16,11 +16,11 @@ public class ChatMessage extends BaseEntity {
 	private LocalDateTime timestamp; 
 	
 	@ManyToOne
-	@JoinColumn(name = "sender_username")
+	@JoinColumn(name = "sender_username", referencedColumnName = "userName")
 	private UserEntity sender;
 	
 	@ManyToOne
-	@JoinColumn(name = "receiver_username")
+	@JoinColumn(name = "receiver_username", referencedColumnName = "userName")
 	private UserEntity receiver;
 	
 	public LocalDateTime getTimestamp() {

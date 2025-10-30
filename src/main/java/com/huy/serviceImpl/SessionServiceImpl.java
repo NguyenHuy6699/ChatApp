@@ -21,9 +21,18 @@ public class SessionServiceImpl {
 	public boolean save(HttpSession session, UserEntity user, String fcmToken, String deviceId) {
 		SessionEntity existingSession = sessionRepo.findByDeviceId(deviceId);
 		if (existingSession != null) {
-			sessionRepo.delete(existingSession);
+			existingSession.setUser(user);
+			existingSession.setSessionId(session.getId());
+			existingSession.setFcmToken(fcmToken);
+			return sessionRepo.save(existingSession) != null;
 		}
 		SessionEntity sessionEntity = new SessionEntity(session.getId(), fcmToken, user, deviceId);
 		return sessionRepo.save(sessionEntity) != null;
+	}
+	
+	public boolean deleteBySessionId(String sessionId) {
+		sessionRepo.deleteBySessionId(sessionId);
+		boolean success = sessionRepo.findBySessionId(sessionId) == null;
+		return success;
 	}
 }

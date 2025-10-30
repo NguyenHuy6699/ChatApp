@@ -18,9 +18,10 @@ public abstract class BaseFilter implements Filter {
 		this.objectMapper = objectMapper;
 	}
 	
-	protected <T> void writeResponse (HttpServletResponse resp, boolean status, String message, List<T> data) throws IOException, ServletException {
+	protected <T> void writeResponse (HttpServletResponse resp, int respType, boolean status, String message, List<T> data) throws IOException, ServletException {
 		resp.setContentType("application/json;charset=UTF-8");
 		BaseResponse<T> baseResp = new BaseResponse<>();
+		baseResp.setCode(respType);
 		baseResp.setOk(status);
 		baseResp.setMessage(message);
 		baseResp.setDataList(data);

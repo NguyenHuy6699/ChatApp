@@ -3,6 +3,7 @@ package com.huy.baseResponse;
 import java.util.List;
 
 public class BaseResponse<T> {
+	private int code = -1;
 	private boolean ok;
 	private String message;
 	private List<T> dataList;
@@ -26,11 +27,24 @@ public class BaseResponse<T> {
 	public void setDataList(List<T> data) {
 		this.dataList = data;
 	}
+	public int getCode() {
+		return code;
+	}
+	public void setCode(int code) {
+		this.code = code;
+	}
 	public BaseResponse(boolean ok, String message, List<T> data) {
 		super();
 		this.ok = ok;
 		this.message = message;
 		this.dataList = data;
+	}
+	public BaseResponse(boolean ok, String message, List<T> data, int code) {
+		super();
+		this.ok = ok;
+		this.message = message;
+		this.dataList = data;
+		this.code = code;
 	}
 	public BaseResponse(boolean ok, String message) {
 		super();

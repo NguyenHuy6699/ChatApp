@@ -8,22 +8,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.huy.baseResponse.BaseResponse;
+import com.huy.constant.Paths;
+import com.huy.constant.ResponseType;
+import com.huy.constant.SessionAtributes;
+import com.huy.dto.FriendRequestDTO;
+import com.huy.dto.UserDTO;
 import com.huy.entity.SessionEntity;
 import com.huy.entity.UserEntity;
 import com.huy.model.Status;
 import com.huy.service.UserService;
 import com.huy.serviceImpl.FriendRequestServiceImpl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-
-import com.huy.baseResponse.BaseResponse;
-import com.huy.constant.Paths;
-import com.huy.dto.FriendRequestDTO;
 
 @RestController
 @RequestMapping(Paths.user)
@@ -47,7 +52,7 @@ public class UserController {
 	@PostMapping(Paths.update_fcm_token)
 	public BaseResponse<Void> updateFcmToken(@RequestParam String userName, @RequestParam String token,
 			HttpSession session) {
-		
+
 		if (session == null)
 			return new BaseResponse<>(false, "Hết phiên đăng nhập");
 
@@ -101,5 +106,39 @@ public class UserController {
 		} else {
 			return new BaseResponse<>(true, removeFriendStatus.getMessage());
 		}
+	}
+
+	@PostMapping(Paths.update_profile)
+	public BaseResponse<UserDTO> updateProfile(
+			@RequestBody UserDTO userDto,
+			@RequestParam String loggedUserName,
+			HttpServletRequest req
+			) {
+		HttpSession session = req.getSession(false);
+		if (session == null || session.getAttribute(SessionAtributes.userName) == null) {
+			return new BaseResponse<>(false, "Hết phiên đăng nhập", null, ResponseType.session_expired);
+		}
+		String sessionUserName = (String) session.getAttribute(SessionAtributes.userName);
+		if (!sessionUserName.equals(loggedUserName)) {
+			return new BaseResponse<>(false, "Người dùng không hợp lệ", null);
+		}
+		BaseResponse<UserDTO> resp = userService.updateProfile(loggedUserName, userDto);
+		if (resp.isOk()) {
+			session.setAttribute(SessionAtributes.userName, userDto.getUserName());
+		}
+		return resp;
+	}
+	
+	@PutMapping(Paths.change_password)
+	public BaseResponse<Void> changePassWord(@RequestParam String loggedUserName, @RequestParam String newPassWord, HttpServletRequest req) {
+		HttpSession session = req.getSession(false);
+		if (session == null || session.getAttribute(SessionAtributes.userName) == null) {
+			return new BaseResponse<>(false, "Hết phiên đăng nhập", null);
+		}
+		String sessionUserName = (String) session.getAttribute(SessionAtributes.userName);
+		if (!sessionUserName.equals(loggedUserName)) {
+			return new BaseResponse<>(false, "Người dùng không hợp lệ", null);
+		}
+		return userService.changePassWord(sessionUserName, newPassWord);
 	}
 }

@@ -17,6 +17,8 @@ public class Paths {
 	public final static String remove_friend = "/remove_friend";
 	public final static String avatar_url = "/avatar";
 	public final static String default_avatar_url = "/default_avatar";
+	public final static String update_profile = "/update_profile";
+	public final static String change_password = "/change_password";
 	
 	//friend request
 	public final static String friend_request = "/friend_request";
