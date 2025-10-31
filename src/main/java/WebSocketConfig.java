@@ -5,13 +5,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 import jakarta.websocket.WebSocketContainer;
 
-@Configuration
-@EnableWebSocket
-public class WebSocketConfig implements WebSocketConfigurer {
-
-	@Override
-	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		registry.addHandler(new MySocketHandler(), "/ws").setAllowedOrigins("*");
-	}
-
-}
+//@Configuration
+//@EnableWebSocket
+//public class WebSocketConfig implements WebSocketConfigurer {
+//
+//	@Override
+//	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+//		registry.addHandler(new MySocketHandler(), "/ws").setAllowedOrigins("*");
+//	}
+//
+//}
